@@ -3,6 +3,8 @@ import { useStore } from './store'
 import { useAccess, useAuth } from './lib/auth'
 import { MODULE_BY_ID, moduleEnabled } from './lib/permissions'
 import Layout from './components/Layout'
+import { UpdateOnNavigate } from './components/AppUpdate'
+import FirstSetup from './pages/FirstSetup'
 import { Empty } from './components/ui'
 import Login, { AuthError, PendingAccount } from './pages/Login'
 import Dashboard from './pages/Dashboard'
@@ -72,13 +74,23 @@ const page = (module, element, finances) => <Guard module={module} finances={fin
 export default function App() {
   const status = useAuth((s) => s.status)
   const ready = useStore((s) => s.ready)
+  const access = useAccess()
+  const setupPending = useStore((s) => s.settings.setupPending)
   if (status === 'loading') return <Splash text="Connexion…" />
   if (status === 'signedOut') return <Login />
   if (status === 'pending') return <PendingAccount />
   if (status === 'error') return <AuthError />
   if (!ready) return <Splash text="Chargement des données depuis Supabase…" />
+  // Base neuve : l'administrateur passe d'abord par l'assistant de première configuration
+  if (setupPending && access.can('configuration', 'modification'))
+    return (
+      <BrowserRouter>
+        <FirstSetup />
+      </BrowserRouter>
+    )
   return (
     <BrowserRouter>
+      <UpdateOnNavigate />
       <Routes>
         {/* Page de signature numérique : pleine page, sans le menu */}
         <Route path="signer/:id" element={<SignDocument />} />

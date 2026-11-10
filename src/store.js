@@ -787,7 +787,7 @@ const restartSync = () => {
   syncHandle = startSync(useStore, syncOptions)
 }
 
-/** Charge les données du compte connecté (et crée la démo si la base est vide). */
+/** Charge les données du compte connecté (et prépare un espace de travail neuf si la base est vide). */
 export async function boot(profile) {
   useRecent.getState().load(profile?.id)
   useClock.getState().load(profile?.id)
@@ -797,7 +797,7 @@ export async function boot(profile) {
   try {
     let data = await loadAll()
     const seeded = !data
-    if (seeded) data = structuredClone(createSeed())
+    if (seeded) data = firstWorkspace()
     systemWrite(() => useStore.setState({ ...data, ready: true, bootError: null }))
     if (seeded) {
       useSyncStatus.setState({ state: 'saving' })
@@ -825,29 +825,42 @@ const requireConfiguration = () => {
   if (!currentAccess().can('configuration', 'modification')) throw new Error('Votre rôle ne permet pas de remplacer les données.')
 }
 
-/** Recharge les données de démonstration (vide la base Supabase si elle est utilisée). */
-export async function resetDemo() {
-  requireConfiguration()
-  const seed = structuredClone(createSeed())
-  if (!DB_ENABLED) {
-    systemWrite(() => useStore.setState(seed))
-    return
-  }
-  syncHandle?.stop()
-  useSyncStatus.setState({ state: 'saving' })
-  await wipeAll()
-  systemWrite(() => useStore.setState(seed))
-  await flush(useStore.getState(), 'Import')
-  useSyncStatus.setState({ state: 'saved', savedAt: new Date() })
-  restartSync()
-}
-
-// ---------- Repartir de zéro ----------
+// ---------- Espace de travail vierge (premier démarrage, « Repartir de zéro ») ----------
 const COUNTERS = Object.keys(DEFAULT_SETTINGS).filter((k) => /^next[A-Z]\w*Number$/.test(k))
 /** Collections qui font partie de la configuration (dossiers, emplacements, types, fonctions et coûts par défaut). */
 export const CONFIG_COLLECTIONS = ['categories', 'stockLocations', 'projectTypes', 'defaultFunctions', 'defaultCosts']
 // Identité de l'entreprise de démonstration, effacée quand la configuration n'est pas conservée
 const BLANK_COMPANY = { companyName: '', address: '', zip: '', city: '', phone: '', email: '', website: '', siret: '', vatNumber: '', iban: '', bic: '', bankName: '', accountHolder: '', logoUrl: '' }
+
+/** Réglages par défaut, sans l'identité ni les modèles de l'entreprise de démonstration. */
+const blankSettings = () => ({
+  ...DEFAULT_SETTINGS,
+  ...BLANK_COMPANY,
+  projectTemplates: [],
+  customFields: [],
+  emailSettings: { ...DEFAULT_SETTINGS.emailSettings, senderName: '', replyTo: '', signature: '' },
+  letterheads: DEFAULT_LETTERHEADS.map((l) => (l.auto ? { ...l, auto: { ...l.auto, tagline: '' } } : l)),
+})
+
+/**
+ * Premier démarrage sur une base vide : espace de travail sans données, avec la configuration de base
+ * (dossiers d'équipements, types de projets, fonctions et coûts par défaut) et un entrepôt principal.
+ * setupPending ouvre l'assistant de première configuration pour le premier administrateur.
+ */
+function firstWorkspace() {
+  const seed = createSeed()
+  const settings = { ...blankSettings(), setupPending: true }
+  for (const k of COUNTERS) settings[k] = 1
+  return {
+    ...emptyData(),
+    settings,
+    categories: seed.categories,
+    projectTypes: seed.projectTypes,
+    defaultFunctions: seed.defaultFunctions,
+    defaultCosts: seed.defaultCosts,
+    stockLocations: [{ id: 'sl_principal', name: 'Entrepôt principal', address: '', kind: 'entrepot', isDefault: true, archived: false }],
+  }
+}
 
 /** Fichiers stockés par la configuration : logo et fonds des en-têtes de documents. */
 const configFiles = (settings) => [
@@ -863,16 +876,7 @@ export async function resetToEmpty({ keepConfig = true, resetCounters = true, re
   const access = currentAccess()
   if (!access.admin || !access.can('configuration', 'modification')) throw new Error('Seul un administrateur peut effacer toutes les données.')
   const cur = useStore.getState()
-  const settings = keepConfig
-    ? { ...cur.settings }
-    : {
-        ...DEFAULT_SETTINGS,
-        ...BLANK_COMPANY,
-        projectTemplates: [],
-        customFields: [],
-        emailSettings: { ...DEFAULT_SETTINGS.emailSettings, senderName: '', replyTo: '', signature: '' },
-        letterheads: DEFAULT_LETTERHEADS.map((l) => (l.auto ? { ...l, auto: { ...l.auto, tagline: '' } } : l)),
-      }
+  const settings = keepConfig ? { ...cur.settings } : blankSettings()
   if (resetCounters) for (const k of COUNTERS) settings[k] = 1
   const next = { ...emptyData(), settings }
   if (keepConfig) for (const c of CONFIG_COLLECTIONS) next[c] = cur[c]

@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom'
 import { useIdx, useStore, toast } from '../../store'
 import { Badge, ColorPicker, Empty, Field, Icon, NumInput, Section, TagInput, Toggle } from '../../components/ui'
 import { DB_ENABLED } from '../../lib/db'
-import { fetchAccounts } from '../../lib/auth'
 import { DEFAULT_SETTINGS } from '../../lib/seed'
 import { PROJECT_STATUSES } from '../../lib/model'
 import { uid } from '../../lib/utils'
@@ -78,44 +77,6 @@ export function PaymentInfo() {
       <Section title="Moyens de paiement acceptés">
         <TagInput value={settings.paymentMethods || []} onChange={(paymentMethods) => set({ paymentMethods })} placeholder="Ajouter un moyen de paiement" />
         <p className="muted small" style={{ marginBottom: 0 }}>Proposés lors de l’enregistrement d’un paiement et imprimés en pied de facture avec les coordonnées bancaires.</p>
-      </Section>
-    </div>
-  )
-}
-
-export function License() {
-  const { settings } = useSettings()
-  const [counts, setCounts] = useState(null)
-  useEffect(() => {
-    if (!DB_ENABLED) return
-    fetchAccounts()
-      .then(({ profiles, roles }) => {
-        const admin = (p) => roles.find((r) => r.id === p.roleId)?.permissions?.manageUsers
-        setCounts({ total: profiles.length, active: profiles.filter((p) => p.active).length, power: profiles.filter((p) => p.active && admin(p)).length, pending: profiles.filter((p) => !p.active).length })
-      })
-      .catch(() => setCounts(null))
-  }, [])
-  const ext = settingObject(settings, 'extensions')
-  const active = EXTENSIONS.filter((e) => ext[e.id])
-  return (
-    <div className="stack">
-      <Section title="Votre licence">
-        <div className="license-head">
-          <span className="license-badge"><Icon name="verified" size={26} /></span>
-          <div>
-            <div className="strong" style={{ fontSize: 18 }}>RentPlan — installation auto-hébergée</div>
-            <div className="muted">Aucune limite de comptes, de PowerUsers ni de modules.</div>
-          </div>
-        </div>
-        <div className="grid grid-4" style={{ marginTop: 18 }}>
-          <div className="stat-tile"><span>Comptes actifs</span><strong>{counts ? counts.active : '—'}</strong></div>
-          <div className="stat-tile"><span>Administrateurs</span><strong>{counts ? counts.power : '—'}</strong></div>
-          <div className="stat-tile"><span>En attente d’activation</span><strong>{counts ? counts.pending : '—'}</strong></div>
-          <div className="stat-tile"><span>Extensions actives</span><strong>{active.length} / {EXTENSIONS.length}</strong></div>
-        </div>
-      </Section>
-      <Section title="Base de données">
-        <div className="row"><Icon name={DB_ENABLED ? 'cloud_done' : 'cloud_off'} size={19} style={{ color: DB_ENABLED ? 'var(--success)' : 'var(--muted)' }} /> {DB_ENABLED ? 'Supabase (Postgres local dans Docker), synchronisé en temps réel.' : 'Données enregistrées dans ce navigateur.'}</div>
       </Section>
     </div>
   )

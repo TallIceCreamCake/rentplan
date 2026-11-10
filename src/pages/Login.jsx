@@ -5,7 +5,7 @@ import { hasAccounts, refreshProfile, signIn, signOut, signUp, useAuth } from '.
 const TEXTS = {
   login: ['Connexion', 'Connectez-vous à votre espace de travail RentPlan.', 'Se connecter'],
   signup: ['Créer un compte', 'Votre compte sera activé par un administrateur de l’espace de travail.', 'Créer mon compte'],
-  setup: ['Bienvenue dans RentPlan', 'Aucun compte n’existe encore : créez le compte administrateur (PowerUser) de votre espace de travail.', 'Créer le compte administrateur'],
+  setup: ['Bienvenue dans RentPlan', 'Aucun compte n’existe encore : créez le compte administrateur (PowerUser) de votre espace de travail. Vous configurerez ensuite votre entreprise en quelques étapes.', 'Créer le compte administrateur'],
   forgot: ['Mot de passe oublié', '', ''],
 }
 
@@ -57,6 +57,7 @@ export default function Login() {
         <div className="login-brand">
           <span className="login-logo">R</span> RentPlan
         </div>
+        {mode === 'setup' && <div className="setup-kicker">Première configuration · étape 1 sur 6</div>}
         <h1>{title}</h1>
         {subtitle && <p className="login-sub">{subtitle}</p>}
 

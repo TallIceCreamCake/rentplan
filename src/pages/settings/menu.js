@@ -7,7 +7,6 @@ export const CONFIG_MENU = [
       ['profil', 'Mon profil', 'tous'],
       ['entreprise', 'Détails de l’entreprise'],
       ['paiement', 'Information de paiement'],
-      ['licence', 'Licence'],
       ['mes-factures', 'Mes factures'],
       ['roles', 'Rôles utilisateur', 'admin'],
       ['utilisateurs', 'Utilisateurs', 'admin'],

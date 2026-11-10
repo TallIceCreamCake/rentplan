@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { CONFIG_COLLECTIONS, replaceAllData, resetDemo, resetToEmpty, useIdx, useStore, toast } from '../store'
+import { CONFIG_COLLECTIONS, replaceAllData, resetToEmpty, useIdx, useStore, toast } from '../store'
 import { Avatar, Badge, ColorPicker, Field, Icon, Menu, Modal, NumInput, Section, Toggle } from '../components/ui'
 import { DB_ENABLED, uploadFile, useSyncStatus } from '../lib/db'
 import { FUNCTION_PRICE_TYPES } from '../lib/model'
@@ -11,6 +11,7 @@ import { configMenuFor, defaultSection, sectionOf } from './settings/menu'
 import * as P from './settings/panels'
 import { DocumentTemplatesPanel, LetterheadsPanel } from './settings/DocumentLayouts'
 import { HeaderSlot } from './settings/slot'
+import { UpdatesSection } from './settings/Updates'
 import { downloadFile, durationFactor, fmtNumber, personName, toDateInput, uid } from '../lib/utils'
 
 const PANELS = {
@@ -19,7 +20,6 @@ const PANELS = {
   roles: RolesPanel,
   entreprise: Company,
   paiement: P.PaymentInfo,
-  licence: P.License,
   'mes-factures': P.MyInvoices,
   extensions: P.Extensions,
   donnees: DataPanel,
@@ -435,18 +435,9 @@ function DataPanel() {
           />
         </div>
       </Section>
+      <UpdatesSection canWrite={canWrite} />
       <Section title="Réinitialisation">
         <div className="reset-list">
-          <div className="reset-row">
-            <Icon name="restart_alt" size={22} />
-            <div>
-              <strong>Recharger la démo</strong>
-              <span>Remplace toutes les données par l’espace de démonstration (projets, matériel, contacts, documents…).</span>
-            </div>
-            <button className="btn btn-danger" disabled={busy || !canWrite} onClick={() => { if (confirm('Recharger les données de démonstration ? Toutes les données actuelles seront remplacées.')) run(resetDemo, 'Données de démonstration rechargées') }}>
-              <Icon name={busy ? 'sync' : 'restart_alt'} size={18} className={busy ? 'spin' : ''} /> Recharger la démo
-            </button>
-          </div>
           <div className="reset-row">
             <Icon name="delete_forever" size={22} style={{ color: 'var(--danger)' }} />
             <div>

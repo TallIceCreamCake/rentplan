@@ -6,6 +6,7 @@ import { currentUserName, setPreference, signOut, useAccess, useAuth } from '../
 import { MODULE_BY_ID, moduleEnabled, moduleOfPath } from '../lib/permissions'
 import { configMenuFor, defaultSection } from '../pages/settings/menu'
 import { Icon, Menu, Modal, Toasts } from './ui'
+import { UpdateBanner } from './AppUpdate'
 import { computeAlerts } from '../lib/alerts'
 import { available, isFinancialDoc } from '../lib/model'
 import { addDays, contactName, fmtHM, matches, personName, startOfDay, toLocalInput, uid } from '../lib/utils'
@@ -211,6 +212,7 @@ export default function Layout() {
         <div className="main-body">
         {isConfig && <ConfigMenu />}
         <main className={`content ${isEditor ? 'content-editor' : ''}`}>
+          <UpdateBanner />
           {readOnly && (
             <div className="readonly-bar">
               <Icon name="visibility" size={18} /> Lecture seule : votre rôle « {access.roleName} » permet de consulter « {MODULE_BY_ID[current]?.label} » sans le modifier.

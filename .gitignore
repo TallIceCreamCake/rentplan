@@ -16,3 +16,7 @@ supabase/.branches
 .vscode/*
 !.vscode/extensions.json
 .idea
+
+# Déploiement : configuration propre à chaque machine, compilations et journaux de l'agent
+deploy/config.json
+.rentplan/
