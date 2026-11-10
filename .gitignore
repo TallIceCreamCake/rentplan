@@ -1,0 +1,18 @@
+# Dépendances et build
+node_modules
+dist
+
+# Environnement local (ne jamais commiter)
+.env.local
+.env.*.local
+
+# Supabase CLI (état local)
+supabase/.temp
+supabase/.branches
+
+# Système / éditeurs
+.DS_Store
+*.log
+.vscode/*
+!.vscode/extensions.json
+.idea
